@@ -2,3 +2,5 @@ base/
 custom/
 mydata/
 *.pt
+# uv virtual environment
+.venv/
