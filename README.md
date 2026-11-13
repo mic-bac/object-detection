@@ -13,7 +13,7 @@ This project covers three main aspects of object detection:
 
 ### Prerequisites
 
-- Python (recommended version 3.8+)
+- [uv](https://docs.astral.sh/uv/) (installs Python 3.13 and the dependencies)
 - Docker (for running Label Studio)
 - GPU recommended for training (but not required)
 
@@ -25,9 +25,9 @@ git clone [your-repo-url]
 cd object-detection
 ```
 
-2. Install Python dependencies:
+2. Install Python dependencies (ultralytics pulls in torch — a large download):
 ```bash
-pip install -r requirements.txt
+uv sync                            # or: pip install -r requirements.txt
 ```
 
 3. Start Label Studio for image annotation:
@@ -46,8 +46,14 @@ docker run -it -p 8080:8080 -v $(pwd)/mydata:/label-studio/data heartexlabs/labe
 │   ├── labels/            # YOLO format labels
 │   └── fine-tune/         # Training outputs
 ├── mydata/                # Label Studio data
+├── results/               # Published outputs (see "Results" below)
+├── export_results.py      # Writes results/ from the two models
 └── showcase.ipynb         # Main tutorial notebook
 ```
+
+`base/`, `custom/`, `mydata/` and the `*.pt` weights are git-ignored: the training photos were
+collected for a classroom exercise and are not redistributed. Put your own photos there to run
+the notebook end to end.
 
 ## 📚 Tutorial Content
 
@@ -83,10 +89,24 @@ The project demonstrates two key workflows:
 
 ## 📊 Results
 
-Training results and model weights are saved in:
+Running the notebook writes locally (git-ignored):
 - Base model results: `base/score_base_out/`
 - Fine-tuned model results: `custom/fine-tune/`
 - Best weights: `custom/fine-tune/weights/best.pt`
+
+`export_results.py` then runs both models on openly licensed photos and writes what can be
+published to `results/` — this is what the teaching app shows (it never runs YOLO itself):
+
+| Path | Content |
+|---|---|
+| `results/images/{everyday,spaghetti}/` | The input photos (credits in `results/CREDITS.md`) |
+| `results/predictions/<model>/` | The same photos with boxes drawn (confidence ≥ 0.25) |
+| `results/detections.json` | Every box per model and photo down to 0.05 confidence, plus a training summary |
+| `results/training/` | `results.csv` (metrics per epoch) and the plots that contain no training photos |
+
+```bash
+uv run python export_results.py    # needs yolo11n.pt and custom/fine-tune/weights/best.pt
+```
 
 ## 📖 Additional Resources
 
@@ -104,4 +124,12 @@ Contributions to improve the educational content or add new features are welcome
 
 ## 📜 License
 
-This project is licensed under the terms of the [LICENSE](LICENSE) file.
+This project is licensed under the **GNU Affero General Public License v3.0** — see [LICENSE](LICENSE).
+
+It is built on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), which is licensed under
+AGPL-3.0; Ultralytics states that models trained with it (such as the fine-tuned weights produced
+here) fall under AGPL-3.0 as well. That is fine for learning, teaching and open-source projects.
+**Closed-source or commercial use requires an [Ultralytics Enterprise License](https://www.ultralytics.com/license).**
+
+The example photos in `results/` are openly licensed; their sources, authors and licenses are listed
+in [`results/CREDITS.md`](results/CREDITS.md).
